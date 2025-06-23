@@ -7,7 +7,7 @@ import {
     Unique,
 } from 'typeorm';
 
-@Entity()
+@Entity('Usuario')
 @Unique(['username'])
 export class User {
     @PrimaryGeneratedColumn()
@@ -22,8 +22,9 @@ export class User {
     @Column({ default: false })
     isVerified: boolean;
 
-    @Column({ nullable: true })
-    verificationCode: string | null;
+    @Column({ type: 'varchar', length: 6, nullable: true })
+    verificationCode?: string;
+
 
     @CreateDateColumn()
     createdAt: Date;

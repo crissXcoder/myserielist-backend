@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+    Injectable,
+    UnauthorizedException,
+    ForbiddenException,
+    NotFoundException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
@@ -7,14 +12,20 @@ import { LoginDto } from './dto/login.dto';
 import { VerifyDto } from './dto/verify.dto';
 import { User } from '../users/user.entity';
 import { randomInt } from 'crypto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
-    constructor(private usersService: UsersService, private jwtService: JwtService) { }
+    constructor(
+        private usersService: UsersService,
+        private jwtService: JwtService,
+        private mailService: MailService,
+    ) { }
 
     async validateUser(username: string, password: string): Promise<User> {
         const user = await this.usersService.findByUsername(username);
-        if (!user || !user.isVerified) throw new ForbiddenException('No verificado');
+        if (!user || !user.isVerified)
+            throw new ForbiddenException('No verificado');
         const valid = await bcrypt.compare(password, user.password);
         if (!valid) throw new UnauthorizedException('Credenciales incorrectas');
         return user;
@@ -31,13 +42,15 @@ export class AuthService {
 
         const hashed = await bcrypt.hash(dto.password, 10);
         const code = randomInt(100000, 999999).toString();
+
         const user = await this.usersService.create({
             ...dto,
             password: hashed,
             verificationCode: code,
         });
 
-        console.log(`Código de verificación para ${user.username}: ${code}`);
+        await this.mailService.sendVerificationCode(user.username, code);
+
         return { msg: 'Usuario creado. Esperando verificación' };
     }
 
@@ -48,7 +61,7 @@ export class AuthService {
             throw new ForbiddenException('Código inválido');
 
         user.isVerified = true;
-        user.verificationCode = null;
+        user.verificationCode = undefined;
         return await this.usersService.save(user);
     }
 }
