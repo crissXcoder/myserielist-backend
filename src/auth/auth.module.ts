@@ -8,15 +8,15 @@ import { LocalStrategy } from './local.strategy';
 import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [
-    UsersModule,
-    PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'secreto_seguro',
-      signOptions: { expiresIn: '7d' },
-    }),
-  ],
-  controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+    imports: [
+        UsersModule,
+        PassportModule,
+        JwtModule.register({
+            secret: process.env.JWT_SECRET || 'secreto_seguro',
+            signOptions: { expiresIn: '7d' },
+        }),
+    ],
+    controllers: [AuthController],
+    providers: [AuthService, LocalStrategy, JwtStrategy],
 })
-export class AuthModule {}
+export class AuthModule { }
